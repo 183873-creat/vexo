@@ -1,0 +1,18 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    function isAdmin() {
+      return request.auth != null
+        && request.auth.token.email == 'REPLACE_WITH_ADMIN_EMAIL';
+    }
+
+    match /projects/{projectId}/{fileName} {
+      allow read: if true;
+      allow create, update: if isAdmin()
+        && fileName.matches('video-.*')
+        && request.resource.contentType.matches('video/(mp4|webm|quicktime)')
+        && request.resource.size <= 262144000;
+      allow delete: if isAdmin();
+    }
+  }
+}
